@@ -1,0 +1,9 @@
+/* Font dimuat dari Google Fonts di index.html */
+html {
+  font-family: "Plus Jakarta Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+html[lang="ar"] body {
+  font-family: "Noto Naskh Arabic", "Plus Jakarta Sans", sans-serif;
+}

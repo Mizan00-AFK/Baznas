@@ -1,0 +1,47 @@
+-	Website target redesign: https://baznas.go.id/
+-	Mari mulai dari membuat redesign homepage dulu
+-	Gambar tersebut adalah gambaran kasar wireframe dari redesign homepage web baznas ini
+-	Bisa dilihat pada wireframe rancangan redesign saya, gambar kanan kiri pada website target (baznas) yang membuat tampilan menjadi sempit dihilangkan agar space pada tampilan lebih penuh
+-	Lalu navigasi burger pada website target juga dihilangkan menjadi navbar seperti yang ada di wireframe
+-	Saat navigasi tertentu dihover navigasi akan menampilkan cabang-cabangnya
+-	Fitur “back to top” pada website target dipertahankan
+-	Jadikan navbarnya sticky
+-	Untuk page-page selanjutnya, aku ingin saat page tersebut dibuka ada tulisan path yang memberi tahu pengguna dimana pengguna saat ini contoh: Beranda/Layanan/Bayar ZIS/Formulir
+-	Kamu bisa melakukan perubahan sedemikian rupa dengan tujuan membuat website menjadi lebih baik/cantik/etc tapi tetap pada panduan kasar dari wireframe dan keterangan-keterangan yang sudah disampaikan
+-	Saat ini saya belum ada rencana tentang  isi foooter
+Isi dari navigasi-navigasi:
+Profil:
+-	Visi dan Misi
+-	Pejabat Baznas
+-	Profil Program
+-	Penghargaan
+-	Mitra Baznas
+Layanan:
+-	Bayar ZIS
+o	Formulir
+o	Rekening
+o	Kantor dan Kasir
+-	Register Mustahik
+-	Register Relawan
+-	Register Label Taat Zakat
+Edukasi ZIS:
+-	Zakat Fitrah
+-	Zakat Mal
+-	Infak
+-	Sedekah
+-	Fidyah
+Berita:
+-	Berita Program
+-	Siaran Pers
+-	Artikel
+-	Baznas TV
+-	Newsletter
+PPID
+Informasi Lainnya
+-	Laporan
+-	Panduan brand
+-	Pustaka
+-	Website Baznas Daerah
+-	Jaringan Lembaga
+-	Kontak
+
