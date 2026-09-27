@@ -11,6 +11,7 @@ import { MitraBaznas, Penghargaan, ProfilProgram, StrukturBaznas } from "./pages
 import { Artikel, BaznasTV, BeritaProgram, Newsletter, SiaranPers } from "./pages/BeritaPages";
 import { RegisterLabelTaatZakat, RegisterPenerimaZakat, RegisterRelawan } from "./pages/RegisterPages";
 import { JaringanLembaga, KebijakanPrivasi, Kontak, PanduanBrand, Ppid, Pustaka } from "./pages/InformasiPages";
+import { SearchPage } from "./pages/SearchPage";
 
 export const router = createBrowserRouter([
   {
@@ -59,6 +60,7 @@ export const router = createBrowserRouter([
       // Tautan dari footer & halaman lain
       { path: "konfirmasi-zakat", Component: KonfirmasiZakat },
       { path: "faq", Component: FaqPage },
+      { path: "cari", Component: SearchPage },
       { path: "kontak", Component: Kontak },
       { path: "kebijakan-privasi", Component: KebijakanPrivasi },
 

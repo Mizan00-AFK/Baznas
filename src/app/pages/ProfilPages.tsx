@@ -3,6 +3,8 @@ import { Award, Building2, Handshake, Landmark, Smartphone, Store, Trophy } from
 import { Card, PageBody, PageHeader } from "../components/PageHeader";
 import { AWARDS, MITRA_GROUPS, MITRA_STORIES, PROGRAMS, STRUKTUR } from "../data/pages";
 import { tx, useI18n } from "../lib/i18n";
+import { Highlight, ResultCount, SearchBox, SortSelect, matchesQuery, useQueryParam } from "../components/ListControls";
+import { sortResults, type SortMode } from "../lib/search";
 
 /** Inisial untuk avatar, mengabaikan gelar (Dr., Ir., H., Hj., Prof., Drs.). */
 function initials(name: string) {
@@ -60,13 +62,41 @@ export function StrukturBaznas() {
 
 export function ProfilProgram() {
   const { t } = useI18n();
-  const [active, setActive] = useState(PROGRAMS[0].id);
+  const [active, setActive] = useQueryParam("bidang", PROGRAMS[0].id);
+  const [query, setQuery] = useQueryParam("q");
   const program = PROGRAMS.find((p) => p.id === active) ?? PROGRAMS[0];
+  // Saat mencari, hasil diambil dari semua bidang
+  const matches = query.trim()
+    ? PROGRAMS.flatMap((p) => p.items.filter((it) => matchesQuery(query, t(it.name), it.name, t(it.desc))).map((it) => ({ ...it, bidang: p })))
+    : [];
 
   return (
     <>
       <PageHeader title={tx("Profil Program")} description={tx("Program pendistribusian dan pendayagunaan zakat, infak, dan sedekah BAZNAS di tujuh bidang.")} />
       <PageBody>
+        <SearchBox value={query} onChange={setQuery} label={t("Cari program")} placeholder={t("Cari nama program di semua bidang…")} className="mb-4 w-full sm:w-96" />
+        {query.trim() ? (
+          <>
+            <ResultCount shown={matches.length} total={PROGRAMS.reduce((n, p) => n + p.items.length, 0)} onReset={() => setQuery("")} />
+            <ul className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {matches.map((item) => (
+                <li key={item.bidang.id + item.name}>
+                  <Card className="h-full">
+                    <button type="button" onClick={() => { setQuery(""); setActive(item.bidang.id); }} className="text-xs font-semibold text-[#1a7a3a] hover:underline">
+                      {t(item.bidang.name)}
+                    </button>
+                    <h3 className="mt-1 font-semibold text-gray-900">
+                      <Highlight text={t(item.name)} query={query} />
+                    </h3>
+                    <p className="mt-2 text-sm leading-relaxed text-gray-600">{t(item.desc)}</p>
+                  </Card>
+                </li>
+              ))}
+            </ul>
+            {matches.length === 0 && <p className="mt-6 text-center text-sm text-gray-500">{t("Tidak ada item yang cocok dengan pencarian Anda.")}</p>}
+          </>
+        ) : (
+        <>
         <div className="-mx-4 overflow-x-auto px-4 sm:mx-0 sm:px-0">
           <div className="inline-flex gap-1 rounded-lg bg-gray-100 p-1" role="tablist" aria-label={t("Bidang program")}>
             {PROGRAMS.map((p) => (
@@ -97,6 +127,8 @@ export function ProfilProgram() {
             </li>
           ))}
         </ul>
+        </>
+        )}
       </PageBody>
     </>
   );
@@ -105,10 +137,28 @@ export function ProfilProgram() {
 /* ---------- Penghargaan (baznas.go.id/penghargaan) ---------- */
 
 export function Penghargaan() {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const years = [...new Set(AWARDS.map((a) => a.year))];
-  const [year, setYear] = useState<number | "all">("all");
-  const items = useMemo(() => AWARDS.filter((a) => year === "all" || a.year === year), [year]);
+  const [yearParam, setYearParam] = useQueryParam("tahun", "all");
+  const [query, setQuery] = useQueryParam("q");
+  const [urut, setUrut] = useQueryParam("urut", "terbaru");
+  const year: number | "all" = yearParam === "all" ? "all" : Number(yearParam);
+  const setYear = (y: number | "all") => setYearParam(String(y));
+  const label = (a: (typeof AWARDS)[number]) => (a.local ? t(a.title) : a.title);
+  const items = useMemo(
+    () =>
+      sortResults(
+        AWARDS.filter((a) => (year === "all" || a.year === year) && matchesQuery(query, label(a), a.title, a.by && t(a.by), a.org)).map((a) => ({
+          ...a,
+          titleText: label(a),
+          date: String(a.year),
+        })),
+        urut as SortMode,
+        lang,
+      ),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [year, query, urut, t, lang],
+  );
 
   const chip = (active: boolean) =>
     `h-10 shrink-0 rounded-md px-4 text-sm font-medium ${active ? "bg-[#1a7a3a] text-white" : "border border-gray-300 bg-white text-gray-700 hover:border-[#1a7a3a]"}`;
@@ -130,7 +180,15 @@ export function Penghargaan() {
           ))}
         </dl>
 
-        <div className="mt-6 flex flex-wrap gap-2" role="toolbar" aria-label={t("Filter tahun")}>
+        <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <SearchBox value={query} onChange={setQuery} label={t("Cari penghargaan")} placeholder={t("Cari nama penghargaan atau penyelenggara…")} className="w-full sm:w-96" />
+          <div className="flex items-center gap-3">
+            <ResultCount shown={items.length} total={AWARDS.length} onReset={() => { setQuery(""); setYear("all"); }} />
+            <SortSelect value={urut as SortMode} onChange={setUrut} options={["terbaru", "terlama", "az", "za"]} />
+          </div>
+        </div>
+
+        <div className="mt-4 flex flex-wrap gap-2" role="toolbar" aria-label={t("Filter tahun")}>
           <button type="button" aria-pressed={year === "all"} onClick={() => setYear("all")} className={chip(year === "all")}>
             {t("Semua tahun")}
           </button>
@@ -150,13 +208,16 @@ export function Penghargaan() {
                 </span>
                 <div className="min-w-0">
                   <div className="text-xs font-semibold text-[#1a7a3a]">{a.year}</div>
-                  <div className="mt-0.5 font-semibold leading-snug text-gray-900">{a.local ? t(a.title) : a.title}</div>
+                  <div className="mt-0.5 font-semibold leading-snug text-gray-900">
+                    <Highlight text={a.titleText} query={query} />
+                  </div>
                   {(a.by || a.org) && <div className="mt-1 text-sm text-gray-600">{a.by ? t(a.by) : a.org}</div>}
                 </div>
               </Card>
             </li>
           ))}
         </ul>
+        {items.length === 0 && <p className="mt-6 text-center text-sm text-gray-500">{t("Tidak ada item yang cocok dengan pencarian Anda.")}</p>}
       </PageBody>
     </>
   );

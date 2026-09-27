@@ -5,6 +5,7 @@ import { BarChart3, ChevronDown, Download, FileText, Folder, FolderOpen, Table2 
 import { Card, PageBody, PageHeader } from "../components/PageHeader";
 import { AUDITED_YEARS, FINANCE_PROGRAMS_2025, FINANCE_YEARLY, MONTHLY_YEARS } from "../data/content";
 import { tx, useI18n } from "../lib/i18n";
+import { SortSelect, YearSelect, useQueryParam } from "../components/ListControls";
 
 // Palet tervalidasi aman buta warna: hijau BAZNAS + emas (emas < 3:1 → disertai label & tabel).
 const SERIES = { penghimpunan: "#1a7a3a", penyaluran: "#c98500" };
@@ -29,7 +30,9 @@ function ChartTooltip({ active, payload, label }: TooltipProps<number, string>) 
 export function LaporanKeuangan() {
   const { t, lang, monthName } = useI18n();
   const [view, setView] = useState<"grafik" | "tabel">("grafik");
-  const [year, setYear] = useState<string>("semua");
+  const [year, setYear] = useQueryParam("tahun", "semua");
+  const [urut, setUrut] = useQueryParam("urut", "terbaru");
+  const order = <T,>(arr: T[]) => (urut === "terlama" ? [...arr].reverse() : arr);
   const [openYear, setOpenYear] = useState<number | null>(null);
 
   const numberLocale = lang === "id" ? "id-ID" : "en-US";
@@ -37,8 +40,8 @@ export function LaporanKeuangan() {
   const ratio = (latest.penyaluran / latest.penghimpunan) * 100;
   const ratioText = ratio.toLocaleString(numberLocale, { maximumFractionDigits: 1 });
   const maxProgram = Math.max(...FINANCE_PROGRAMS_2025.map((p) => p.value));
-  const audited = AUDITED_YEARS.filter((y) => year === "semua" || String(y) === year);
-  const monthly = MONTHLY_YEARS.filter((y) => year === "semua" || String(y) === year);
+  const audited = order(AUDITED_YEARS.filter((y) => year === "semua" || String(y) === year));
+  const monthly = order(MONTHLY_YEARS.filter((y) => year === "semua" || String(y) === year));
   const allYears = [...new Set([...MONTHLY_YEARS, ...AUDITED_YEARS])].sort((a, b) => b - a);
 
   const download = (title: string) => toast.success(t("Mengunduh {title} (simulasi)", { title }));
@@ -163,17 +166,8 @@ export function LaporanKeuangan() {
 
           {/* Filter tahun (Pertemuan 6 b.v) */}
           <div className="flex flex-wrap items-center gap-3">
-            <label htmlFor="tahun" className="text-sm font-medium text-gray-900">
-              {t("Filter tahun")}
-            </label>
-            <select id="tahun" value={year} onChange={(e) => setYear(e.target.value)} className="rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#1a7a3a]">
-              <option value="semua">{t("Semua tahun")}</option>
-              {allYears.map((y) => (
-                <option key={y} value={y}>
-                  {y}
-                </option>
-              ))}
-            </select>
+            <YearSelect value={year} onChange={setYear} years={allYears} />
+            <SortSelect value={urut as "terbaru" | "terlama"} onChange={setUrut} options={["terbaru", "terlama"]} />
           </div>
 
           <div className="grid gap-6 lg:grid-cols-2">

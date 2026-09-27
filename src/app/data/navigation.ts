@@ -77,6 +77,7 @@ export const NAV_ITEMS: NavItem[] = [
 /** Halaman di luar menu utama (footer / akses cepat). */
 const EXTRA: Record<string, string> = {
   "/faq": tx("FAQ"),
+  "/cari": tx("Pencarian"),
   "/konfirmasi-zakat": tx("Konfirmasi Zakat"),
   "/kontak": tx("Kontak"),
   "/kebijakan-privasi": tx("Kebijakan Privasi"),

@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { Link, useLocation } from "react-router";
-import { ChevronDown, Menu, X } from "lucide-react";
+import { ChevronDown, Menu, Search, X } from "lucide-react";
+import { useSearch } from "./SearchDialog";
 import logo from "@/imports/logo-baznas-crop.png";
 import { NAV_ITEMS, type NavChild, type NavItem } from "../data/navigation";
 import { LANGUAGES, useI18n } from "../lib/i18n";
@@ -126,6 +127,7 @@ function DropdownMenu({
 /** Menu untuk layar kecil (< 1280px): struktur sama, ditampilkan sebagai daftar bertingkat. */
 function MobileMenu({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { t } = useI18n();
+  const { openSearch } = useSearch();
   const { pathname } = useLocation();
   const [expanded, setExpanded] = useState<string | null>(null);
   const [expandedSub, setExpandedSub] = useState<string | null>(null);
@@ -156,6 +158,16 @@ function MobileMenu({ open, onClose }: { open: boolean; onClose: () => void }) {
           </button>
         </div>
         <nav className="flex-1 overflow-y-auto p-3" aria-label={t("Navigasi utama")}>
+          <button
+            type="button"
+            onClick={() => {
+              onClose();
+              openSearch();
+            }}
+            className="mb-3 flex h-11 w-full items-center gap-2 rounded-md border border-gray-300 px-3 text-sm text-gray-500 hover:border-[#1a7a3a]"
+          >
+            <Search size={16} /> {t("Cari layanan, berita, dokumen, program…")}
+          </button>
           <ul className="space-y-0.5">
             {NAV_ITEMS.map((item) => {
               if (!item.children) {
@@ -231,6 +243,7 @@ function MobileMenu({ open, onClose }: { open: boolean; onClose: () => void }) {
 
 export function Navbar() {
   const { t } = useI18n();
+  const { openSearch } = useSearch();
   const { pathname } = useLocation();
   const [openMenu, setOpenMenu] = useState<string | null>(null);
   const [hoveredSub, setHoveredSub] = useState<string | null>(null);
@@ -278,7 +291,7 @@ export function Navbar() {
     <>
       <a
         href="#konten"
-        className="sr-only z-[80] rounded-md bg-white px-4 py-2 font-semibold text-[#1a7a3a] focus:not-sr-only focus:fixed focus:start-4 focus:top-4"
+        className="sr-only z-[80] rounded-md bg-white font-semibold text-[#1a7a3a] focus:not-sr-only focus:fixed focus:start-4 focus:top-4 focus:px-4 focus:py-2"
       >
         {t("Lewati ke konten utama")}
       </a>
@@ -336,6 +349,15 @@ export function Navbar() {
           </div>
 
           <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => openSearch()}
+              aria-label={t("Cari")}
+              title={t("Cari (Ctrl+K)")}
+              className="flex h-11 w-11 items-center justify-center rounded-md text-gray-700 hover:bg-gray-100 hover:text-[#1a7a3a]"
+            >
+              <Search size={20} />
+            </button>
             <div className="hidden sm:block">
               <LanguageChips />
             </div>

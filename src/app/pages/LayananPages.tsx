@@ -6,6 +6,7 @@ import { Card, PageBody, PageHeader } from "../components/PageHeader";
 import { CurrencyInput } from "../components/CurrencyInput";
 import { tx, useI18n } from "../lib/i18n";
 import { BANKS, REKENING, type Account } from "../data/rekening";
+import { ResultCount, SearchBox, matchesQuery } from "../components/ListControls";
 
 /* ---------- Rekening (baznas.go.id/rekening) ---------- */
 
@@ -39,7 +40,12 @@ export function RekeningZakat() {
     setCatState(id);
     setParams((p) => ({ ...Object.fromEntries(p), kategori: id }), { replace: true });
   };
-  const current = REKENING.find((r) => r.id === cat) ?? REKENING[0];
+  const [bankQuery, setBankQuery] = useState(params.get("bank") ?? "");
+  const category = REKENING.find((r) => r.id === cat) ?? REKENING[0];
+  const current = {
+    ...category,
+    accounts: category.accounts.filter((a) => matchesQuery(bankQuery, BANKS[a.bank].name, a.number, a.number.replace(/\D/g, ""), a.program && t(a.program))),
+  };
   const copy = (a: Account) => {
     navigator.clipboard?.writeText(a.number.replace(/\D/g, ""));
     toast.success(t("Nomor rekening {bank} disalin.", { bank: BANKS[a.bank].name }));
@@ -72,6 +78,13 @@ export function RekeningZakat() {
               ))}
             </div>
           </div>
+
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <SearchBox value={bankQuery} onChange={setBankQuery} label={t("Cari bank")} placeholder={t("Cari nama bank atau nomor rekening…")} className="w-full sm:w-96" />
+            <ResultCount shown={current.accounts.length} total={category.accounts.length} onReset={() => setBankQuery("")} />
+          </div>
+
+          {current.accounts.length === 0 && <p className="rounded-xl border border-dashed border-gray-300 p-8 text-center text-sm text-gray-500">{t("Tidak ada item yang cocok dengan pencarian Anda.")}</p>}
 
           {current.note && <p className="rounded-md border border-green-200 bg-green-50 px-4 py-3 text-sm text-gray-700">{t(current.note)}</p>}
 

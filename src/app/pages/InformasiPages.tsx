@@ -1,9 +1,11 @@
-import { useMemo, useState, type ReactNode } from "react";
-import { BookOpen, Download, ExternalLink, Facebook, FileText, Instagram, Linkedin, Mail, MapPin, MessageCircle, Phone, Search, ShieldCheck, Twitter, Youtube } from "lucide-react";
+import { useMemo, type ReactNode } from "react";
+import { BookOpen, Download, ExternalLink, Facebook, FileText, Instagram, Linkedin, Mail, MapPin, MessageCircle, Phone, ShieldCheck, Twitter, Youtube } from "lucide-react";
 import logo from "@/imports/logo-baznas-crop.png";
 import { Card, PageBody, PageHeader } from "../components/PageHeader";
 import { LEMBAGA, PPID_KATEGORI, PPID_LANGKAH, PRIVASI, PUSTAKA } from "../data/pages";
 import { tx, useI18n } from "../lib/i18n";
+import { Highlight, ResultCount, SearchBox, SortSelect, YearSelect, matchesQuery, useQueryParam } from "../components/ListControls";
+import { sortResults, type SortMode } from "../lib/search";
 
 function ExternalButton({ href, children, primary }: { href: string; children: ReactNode; primary?: boolean }) {
   return (
@@ -82,36 +84,40 @@ export function PanduanBrand() {
 /* ---------- Pustaka (baznas.go.id/pustaka) ---------- */
 
 export function Pustaka() {
-  const { t } = useI18n();
-  const [query, setQuery] = useState("");
-  const [year, setYear] = useState<string>("semua");
+  const { t, lang } = useI18n();
+  const [query, setQuery] = useQueryParam("q");
+  const [year, setYear] = useQueryParam("tahun", "semua");
+  const [urut, setUrut] = useQueryParam("urut", "terbaru");
   const years = [...new Set(PUSTAKA.map((p) => p.year))];
-  const items = useMemo(
-    () =>
-      PUSTAKA.filter(
-        (p) => (year === "semua" || String(p.year) === year) && `${t(p.title)} ${p.title} ${p.author}`.toLowerCase().includes(query.trim().toLowerCase()),
-      ),
-    [query, year, t],
-  );
+  const items = useMemo(() => {
+    const f = PUSTAKA.filter((p) => (year === "semua" || String(p.year) === year) && matchesQuery(query, t(p.title), p.title, p.author, p.isbn, t(p.desc)));
+    return sortResults(
+      f.map((p) => ({ ...p, titleText: t(p.title), date: String(p.year) })),
+      urut as SortMode,
+      lang,
+    );
+  }, [query, year, urut, t, lang]);
 
   return (
     <>
       <PageHeader title={tx("Pustaka")} description={tx("Publikasi, kajian, dan buku terbitan BAZNAS dan Pusat Kajian Strategis (PUSKAS) BAZNAS.")} />
       <PageBody>
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-          <label className="relative block w-full sm:w-80">
-            <span className="sr-only">{t("Cari publikasi")}</span>
-            <Search size={16} className="absolute start-3 top-1/2 -translate-y-1/2 text-gray-400" aria-hidden />
-            <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder={t("Cari judul atau penulis…")} className="w-full rounded-md border border-gray-300 py-2.5 pe-3 ps-9 text-sm focus:outline-none focus:ring-2 focus:ring-[#1a7a3a]" />
-          </label>
-          <select aria-label={t("Filter tahun")} value={year} onChange={(e) => setYear(e.target.value)} className="h-11 rounded-md border border-gray-300 bg-white px-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#1a7a3a]">
-            <option value="semua">{t("Semua tahun")}</option>
-            {years.map((y) => (
-              <option key={y} value={y}>
-                {y}
-              </option>
-            ))}
-          </select>
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+            <SearchBox value={query} onChange={setQuery} label={t("Cari publikasi")} placeholder={t("Cari judul atau penulis…")} className="w-full sm:w-80" />
+            <YearSelect value={year} onChange={setYear} years={years} />
+          </div>
+          <div className="flex items-center gap-3">
+            <ResultCount
+              shown={items.length}
+              total={PUSTAKA.length}
+              onReset={() => {
+                setQuery("");
+                setYear("semua");
+              }}
+            />
+            <SortSelect value={urut as SortMode} onChange={setUrut} options={["terbaru", "terlama", "az", "za"]} />
+          </div>
         </div>
 
         <ul className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -123,7 +129,9 @@ export function Pustaka() {
                     <FileText size={18} aria-hidden />
                   </span>
                   <div>
-                    <h2 className="font-semibold leading-snug text-gray-900">{t(p.title)}</h2>
+                    <h2 className="font-semibold leading-snug text-gray-900">
+                      <Highlight text={t(p.title)} query={query} />
+                    </h2>
                     <p className="mt-1 text-xs text-gray-500">
                       {p.author} · {p.year} · {t("{n} halaman", { n: p.pages })}
                     </p>
@@ -147,9 +155,21 @@ export function Pustaka() {
 /* ---------- Jaringan Lembaga (baznas.go.id/lembaga-amil-zakat, lembaga-islam, lembaga-pendidikan) ---------- */
 
 export function JaringanLembaga() {
-  const { t } = useI18n();
-  const [tab, setTab] = useState(LEMBAGA[0].id);
+  const { t, lang } = useI18n();
+  const [tab, setTab] = useQueryParam("jenis", LEMBAGA[0].id);
+  const [query, setQuery] = useQueryParam("q");
+  const [urut, setUrut] = useQueryParam("urut", "az");
   const group = LEMBAGA.find((l) => l.id === tab) ?? LEMBAGA[0];
+  const items = useMemo(
+    () =>
+      sortResults(
+        group.items.filter((it) => matchesQuery(query, it.name, it.web)).map((it) => ({ ...it, titleText: it.name })),
+        urut as SortMode,
+        lang,
+      ),
+    [group, query, urut, lang],
+  );
+
   return (
     <>
       <PageHeader title={tx("Jaringan Lembaga")} description={tx("Lembaga amil zakat, organisasi Islam, dan perguruan tinggi yang menjadi jaringan BAZNAS.")} />
@@ -161,9 +181,9 @@ export function JaringanLembaga() {
                 key={l.id}
                 type="button"
                 role="tab"
-                aria-selected={l.id === tab}
+                aria-selected={l.id === group.id}
                 onClick={() => setTab(l.id)}
-                className={`whitespace-nowrap rounded-md px-4 py-2 text-sm font-medium ${l.id === tab ? "bg-[#1a7a3a] text-white shadow-sm" : "text-gray-700 hover:bg-gray-200"}`}
+                className={`whitespace-nowrap rounded-md px-4 py-2 text-sm font-medium ${l.id === group.id ? "bg-[#1a7a3a] text-white shadow-sm" : "text-gray-700 hover:bg-gray-200"}`}
               >
                 {t(l.name)} <span className="opacity-70">({l.items.length})</span>
               </button>
@@ -171,11 +191,20 @@ export function JaringanLembaga() {
           </div>
         </div>
         <p className="mt-4 text-sm text-gray-600">{t(group.desc)}</p>
+        <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <SearchBox value={query} onChange={setQuery} label={t("Cari lembaga")} placeholder={t("Cari nama lembaga atau situs…")} className="w-full sm:w-80" />
+          <div className="flex items-center gap-3">
+            <ResultCount shown={items.length} total={group.items.length} onReset={() => setQuery("")} />
+            <SortSelect value={urut as SortMode} onChange={setUrut} options={["az", "za"]} />
+          </div>
+        </div>
         <ul className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {group.items.map((item) => (
+          {items.map((item) => (
             <li key={item.name}>
               <Card className="h-full">
-                <div className="font-semibold leading-snug text-gray-900">{item.name}</div>
+                <div className="font-semibold leading-snug text-gray-900">
+                  <Highlight text={item.name} query={query} />
+                </div>
                 {"sk" in item && item.sk && (
                   <div className="mt-1 break-all text-xs text-gray-500">
                     {t("SK Rekomendasi")}: <span dir="ltr">{item.sk}</span>
@@ -196,6 +225,7 @@ export function JaringanLembaga() {
             </li>
           ))}
         </ul>
+        {items.length === 0 && <p className="mt-6 text-center text-sm text-gray-500">{t("Tidak ada item yang cocok dengan pencarian Anda.")}</p>}
       </PageBody>
     </>
   );

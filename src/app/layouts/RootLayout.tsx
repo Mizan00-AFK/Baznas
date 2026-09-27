@@ -4,10 +4,12 @@ import { Navbar } from "../components/Navbar";
 import { Footer } from "../components/Footer";
 import { BackToTop } from "../components/BackToTop";
 import { useI18n } from "../lib/i18n";
+import { SearchProvider } from "../components/SearchDialog";
 
 export function RootLayout() {
   const { t, dir } = useI18n();
   return (
+    <SearchProvider>
     <div className="min-h-screen bg-white">
       <Navbar />
       <main id="konten" tabIndex={-1} className="outline-none">
@@ -25,5 +27,6 @@ export function RootLayout() {
       />
       <ScrollRestoration />
     </div>
+    </SearchProvider>
   );
 }

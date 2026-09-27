@@ -6,6 +6,8 @@ import { FaqAccordion } from "../components/FaqAccordion";
 import { FAQ, KABUPATEN, KOTA, PROVINCES, daerahUrl } from "../data/content";
 import { getChildren, getTrail } from "../data/navigation";
 import { tx, useI18n } from "../lib/i18n";
+import { Highlight, ResultCount, SearchBox, SortSelect, matchesQuery, useQueryParam } from "../components/ListControls";
+import { sortResults, type SortMode } from "../lib/search";
 
 /* ---------- Edukasi ZIS: /edukasi/:slug ---------- */
 
@@ -100,11 +102,22 @@ export function EdukasiZIS() {
 /* ---------- FAQ (mengikuti baznas.go.id/faq-baznas) ---------- */
 
 export function FaqPage() {
+  const { t } = useI18n();
+  const [query, setQuery] = useQueryParam("q");
+  const items = FAQ.filter((f) => matchesQuery(query, t(f.q), t(f.a), f.q));
   return (
     <>
       <PageHeader title={tx("Frequently Asked Questions")} description={tx("Pertanyaan yang sering diajukan seputar zakat, infak, sedekah, dan layanan BAZNAS.")} />
       <PageBody narrow>
-        <FaqAccordion items={FAQ} defaultOpen={null} />
+        <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <SearchBox value={query} onChange={setQuery} label={t("Cari pertanyaan")} placeholder={t("Cari pertanyaan, mis. nisab, BSZ…")} className="w-full sm:w-96" />
+          <ResultCount shown={items.length} total={FAQ.length} onReset={() => setQuery("")} />
+        </div>
+        {items.length ? (
+          <FaqAccordion key={query} items={items} defaultOpen={query.trim() ? 0 : null} />
+        ) : (
+          <p className="rounded-xl border border-dashed border-gray-300 p-8 text-center text-sm text-gray-500">{t("Tidak ada item yang cocok dengan pencarian Anda.")}</p>
+        )}
       </PageBody>
     </>
   );
@@ -122,12 +135,14 @@ export function WebsiteDaerah() {
     Kabupaten: KABUPATEN.map((k) => ({ name: t("BAZNAS Kabupaten {name}", { name: k }), url: daerahUrl("kab", k) })),
     Kota: KOTA.map((k) => ({ name: t("BAZNAS Kota {name}", { name: k }), url: daerahUrl("kota", k) })),
   };
-  const [tab, setTab] = useState(LEVELS[0]);
-  const [query, setQuery] = useState("");
+  const [tab, setTab] = useQueryParam("tingkat", LEVELS[0]);
+  const [query, setQuery] = useQueryParam("q");
+  const [urut, setUrut] = useQueryParam("urut", "az");
+  const list = lists[tab] ?? lists.Provinsi;
   const items = useMemo(
-    () => lists[tab].filter((d) => d.name.toLowerCase().includes(query.trim().toLowerCase())).sort((a, b) => a.name.localeCompare(b.name)),
+    () => sortResults(list.filter((d) => matchesQuery(query, d.name)).map((d) => ({ ...d, titleText: d.name })), urut as SortMode, "id"),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [tab, query, t],
+    [tab, query, urut, t],
   );
 
   return (
@@ -149,11 +164,13 @@ export function WebsiteDaerah() {
               </button>
             ))}
           </div>
-          <label className="relative block w-full sm:w-72">
-            <span className="sr-only">{t("Cari daerah")}</span>
-            <Search size={16} className="absolute start-3 top-1/2 -translate-y-1/2 text-gray-400" aria-hidden />
-            <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder={t("Cari nama daerah…")} className="w-full rounded-md border border-gray-300 py-2.5 pe-3 ps-9 text-sm focus:outline-none focus:ring-2 focus:ring-[#1a7a3a]" />
-          </label>
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+            <SearchBox value={query} onChange={setQuery} label={t("Cari daerah")} placeholder={t("Cari nama daerah…")} className="w-full sm:w-72" />
+            <SortSelect value={urut as SortMode} onChange={setUrut} options={["az", "za"]} />
+          </div>
+        </div>
+        <div className="mt-4">
+          <ResultCount shown={items.length} total={list.length} onReset={() => setQuery("")} />
         </div>
 
         <Card className="mt-6">
@@ -167,7 +184,7 @@ export function WebsiteDaerah() {
                   rel="noreferrer"
                   className="group inline-flex min-h-10 items-center gap-1.5 text-sm font-medium text-[#1a7a3a] underline decoration-green-200 underline-offset-4 hover:text-[#145c2c] hover:decoration-[#1a7a3a]"
                 >
-                  {d.name}
+                  <Highlight text={d.name} query={query} />
                   <ExternalLink size={13} className="shrink-0 opacity-60 group-hover:opacity-100 rtl:-scale-x-100" aria-hidden />
                 </a>
               </li>

@@ -88,7 +88,7 @@ function Newsletter() {
           placeholder={t("nama@email.com")}
           aria-invalid={status === "error"}
           aria-describedby="newsletter-error"
-          className="h-11 min-w-0 flex-1 rounded-xl border border-white/20 bg-white/10 px-3 text-sm text-white placeholder:text-white/50 focus:border-gold-400 focus:outline-none"
+          className="h-11 w-full min-w-0 flex-1 rounded-xl border border-white/20 bg-white/10 px-3 text-sm text-white placeholder:text-white/50 focus:border-gold-400 focus:outline-none"
         />
         <button
           type="submit"
@@ -112,7 +112,7 @@ export function Footer() {
   return (
     <footer className="bg-islamic-pattern bg-brand-900 text-white">
       <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:py-16">
-        <div className="grid gap-10 lg:grid-cols-[1.3fr_repeat(3,1fr)_1.3fr]">
+        <div className="grid gap-10 lg:grid-cols-[1.3fr_repeat(3,1fr)_1.3fr] [&>*]:min-w-0">
           <div className="space-y-5">
             <div className="inline-flex rounded-2xl bg-white p-3">
               <img src={logo} alt="BAZNAS" className="h-14 w-auto" />

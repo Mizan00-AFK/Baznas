@@ -16,6 +16,8 @@ Evaluasi memakai QUIS (Pertemuan 5). Jalankan dengan `npm i` lalu `npm run dev`.
 |  |  | "Kalkulator Zakat" ditambahkan ke menu Edukasi ZIS | P7 b.ii | H1 |
 |  |  | Pemilih bahasa dari dropdown menjadi chip **ID \| EN \| AR** | P6 b.i | H2 |
 |  |  | Layar < 1280 px memakai menu hamburger dengan struktur yang sama (responsif) | – | – |
+| **Pencarian global** (navbar, Ctrl+K, `/cari`) | – (situs asli tidak punya pencarian) | Saran otomatis, pencarian per kategori (8 kategori), filter, pengurutan (relevansi/terbaru/terlama/A–Z), riwayat & pencarian populer, sorot kata kunci | P7 (navigasi untuk menemukan informasi), P6 (umpan balik instan) | H1, H2 |
+| **Filter & urutan di halaman daftar** | Berita, Baznas TV, Newsletter, Pustaka, Penghargaan, Profil Program, Jaringan Lembaga, Website Daerah, FAQ, Laporan, Rekening | Kotak cari + filter + urutan yang tersimpan di URL sehingga bisa dibagikan dan dibuka langsung dari hasil pencarian | P6 b.v (filter langsung tanpa memuat ulang) | H1 |
 | Breadcrumb | Rancangan kelompok (bilah abu-abu) | Tampil di semua halaman, dibuat otomatis dari struktur menu | Rancangan_Plan | H2 |
 | Beranda | Rancangan kelompok + wireframe | Pintasan rata kiri, carousel bisa digeser, ringkasan transparansi | P6 a.v, P9 a, P9 c | H1, H5 |
 | Back to top | Situs asli | Dipertahankan | P6 a.vi, P7 a.vi | – |
